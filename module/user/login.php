@@ -7,7 +7,7 @@ class login {
 		} else {
 			return false;
 		}
-		$data = app()->my_db->query('select * from role_attr where roleid='.$uid);
+		$data = opp()->my_db->query('select * from role_attr where roleid='.$uid);
 		$info = array();
 		foreach ($data as $d) {
 			switch ($d['attr_type']) {
