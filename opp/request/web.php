@@ -1,7 +1,8 @@
-
 <?php
+	namespace	opp\request;
+
 	/* Web 请求Router 类， 提供WEB请求的所有参数 */
-	class web implements IRequest {
+	class web implements \IRequest {
 		private $params = array();
 		private $path = false;
 		private $format = false;
@@ -12,19 +13,16 @@
 				if (preg_match('/^(.*)\.(\w+)(\?.*)?$/', $uri, $match)) {
 					$this->path = $match[1];
 					$this->format = $match[2];
-
-					$params = array_filter(explode("&", trim($match[3], "?")));
-					foreach ($params as $p) {
-						if (count($p = explode("=", $p)) == 2) {
-							list($key, $val) = $p;
-							$this->params[$key] = $val;
-						}
-					}
-
-					foreach ($_POST as $key => $val) {
-						$this->params[$key] = $val;
-					}
-
+				}
+			}
+			if (!empty($_GET)) {
+				foreach ($_GET as $key => $val) {
+					$this->params[$key] = $val;
+				}
+			}
+			if (!empty($_POST)) {
+				foreach ($_POST as $key => $val) {
+					$this->params[$key] = $val;
 				}
 			}
 		}

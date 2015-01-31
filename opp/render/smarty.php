@@ -1,6 +1,6 @@
 <?php
 
-namespace opp\tools\render;
+namespace opp\render;
 if (!defined('OPP_SMARTY_ROOT')) {
 	define('OPP_SMARTY_ROOT', dirname(realpath(__FILE__)) . "/smarty");
 }

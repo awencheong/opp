@@ -1,5 +1,5 @@
 <?php
-	namespace opp\tools\render;
+	namespace opp\render;
 
 	class json implements \IRender {
 		public function render($path, $params = array()) {
