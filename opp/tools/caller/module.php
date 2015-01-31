@@ -1,6 +1,7 @@
 <?php
+	namespace \env\tools\caller;
 
-	class ModuleCaller implements ICaller {
+	class module implements \ICaller {
 		private $path;
 		private $space_root;
 		private $dir_root;

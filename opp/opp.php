@@ -10,9 +10,13 @@ if (!defined("OPP_LOADED")) {
 	define("OPP_ROOT", dirname(realpath(__FILE__)));
 
 	spl_autoload_register(function($class_name) {
-		$file_path = OPP_ROOT . "/".str_replace("\\", "/", $class_name).".php";
-		if (file_exists($file_path)) {
-			require($file_path);
+		$namespace_root = "opp";
+		if (strpos($class_name,$namespace_root) === 0) {
+			$class_name = substr($class_name, strlen($namespace_root));
+			$file_path = OPP_ROOT . "/".str_replace("\\", "/", $class_name).".php";
+			if (file_exists($file_path)) {
+				require($file_path);
+			}
 		}
 	});
 
