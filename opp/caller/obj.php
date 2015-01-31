@@ -35,7 +35,7 @@
 
 		public function __construct($space_root, $dir_root) {
 			$this->space_root = $space_root;
-			$this->dir_root = $dir_root;
+			$this->dir_root = realpath($dir_root);
 		}
 
 		public function call($path, $params=array()) {
