@@ -1,9 +1,12 @@
 <?php
-
 include "../opp/opp.php";
+opp()->render = new \opp\render\smarty;
+
+/*
 
 opp()->db = new \opp\sql\mysqlpdo("127.0.0.1", 3306, "root", "root", "handone");
 opp()->db->query('insert into `test` (`value`) values (\'%\');');
+ */
 
 /* test sql 
 
