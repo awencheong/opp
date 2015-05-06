@@ -12,13 +12,13 @@ class OppException extends Exception{
 class	Opp {
 	const	TYPE_GLOBAL = 0;	//Object type "Normal"
 	const	TYPE_DB	=	1;	//Object type "DB"
-	const	TYPE_PLUGIN =	2;
+	const	TYPE_MODULE =	2;
 
 	private $globals = array();
 	private $dbs = array();
-	private $plugins = array();
+	private $modules = array();
 
-	public function __get(){}
+	public function __get($name){}
 
 	public function load($name, $object, $type = Opp::TYPE_GLOBAL){}
 
@@ -78,13 +78,13 @@ opp()->app = new \Opp\Caller\Obj();
 opp()->app->baseDir = "/path/to/dir";
 
 
-opp()->load("html", "/plugin/render/html");		//这是个caller 型的插件
+opp()->load("html", "/modules/render/html");		//这是个caller 型的插件
 opp()->html->globalVars = array();
 opp()->html->baseDir = "/path/to/html";
 opp()->html->baseSmarty = "/path/to/smarty";
 
 
-opp()->load("json", "/plugin/render/json");		//这是个run 型的插件
+opp()->load("json", "/modules/render/json");		//这是个run 型的插件
 
 
 */
