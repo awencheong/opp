@@ -1,0 +1,220 @@
+================================= 代码结构 ==================================
+1. 结构应该遵循：
+
+	a）文件所在目录, 直接反映出这个类/func 能不能直接挪走重用； 查看文件的注释文档，则能清楚了解到所有的依赖
+
+	b）所有文件从重用性上都应该分为 ：
+		"core",		纯粹无依赖的 基础设施, 内含各种基础的，被其他所有目录的文件所依赖的 小工具 类
+		"tools",	依赖于core的框架工具
+		"service",	依赖于框架的 core 及 core , 这样即使重新安装框架，它也能够立刻正确运行;
+
+	c）所有文件从功能上都不做强制归类-----因为有太多的功能了。 如果需要，请自行在 对应的目录下进行归类, 例如 core/net,  tools/smarty	....
+
+	d）文件名本身必须是它的功能的描述.  例如:  mysql.class.php, shm.class.php 
+
+
+2.	关于 目录建设 :
+
+	2) interface.php	存在理由： 部分core的功能，需要提供外界一个扩展接口，这个扩展，必须使用 interface 的形式固化下来，以保证框架的稳定
+	3) const.php		存在理由： 需要一个专门放置常量的文件，以便开发者能够第一时间找到该定义(该功能似乎可以用文档来替代)
+	4) app.class.php	存在理由： 承载整个框架的运行
+
+	1) core/			存在理由:  从PHP提供的硬件设施 到 更适合多数情况下使用的API, 这部分的二次开发是必要的, 该目录下的类可以是对 interface.php 中接口的实现， 但不能依赖于 同级目录 下的其他类, 为的就是需要的时候，能够直接拷贝使用(去掉 namespace 和 interface 声明)
+	5) tools/			存在理由： 有些类，会被 app.class.php 等依赖，但构建它又需要 core/ 目录下的多个类，这时候需要一个目录来放置这种"中间类", 当然，这里的类也可以被外部使用
+	6) service/			存在理由： 当具体到用户级别的服务的时候，放在这里（通常它已经紧密依赖了整个框架）, 例如  doc.class.php (文档服务) ,  monitor.class.php (监控服务)
+
+
+
+3.	关于基础功能：
+	
+	路由
+
+	route('/path/module/');				//默认route 的前两个目录 决定controller, 后面的为参数及对应名字
+	route('/path/module/{module2}/{param1}/', 3);	//明确指定 route 的前 3 个目录 决定 controller
+	route("/{mod}/{act}/");				//一个通用的“自然路由”应该是这样子的:
+
+	route("/admin/user/login/",3)->map("route:/user/login");	//映射路由 到 另一个路由
+
+
+
+	route("/user/login/{name}/{passwd}/")->where("name", '/\w+/')->where("passwd", '/\w+/');	//给路由设置 参数过滤规则
+	route("/user/login/{name}/{passwd}/")->where("name", ['/\w+/', 'required', 'str']);
+	
+	route("/user/login/{name}/{passwd}/")->only(["post", "get"]);		//设置路由所允许的 method 
+
+				
+	route("/{mod}/{act}/")->only("post");		//路由模糊匹配规则	
+
+	route("/admin/{act}/")->only("post");
+
+	route("/{mod}/put/")->only("post");
+
+	route("/user/{act}/")->where("name", 'required');
+
+
+
+
+
+	route("/user/login/{name}/{passwd}/") 		//路由规则 匹配 请求
+
+			||
+		对应下面的请求
+			||
+
+	r = post("/user/login/")->form("name","awen")->form("passwd", 123);
+	r = get("/user/login?name=awen&passwd=123");		
+	r = put("/user/login?name=awen&passwd=123");		
+	r = delete("/user/login?name=awen&passwd=123");
+
+
+	route("/user/{act}")->match(r)->run();	//路由规则 匹配 请求:	1.匹配路径,确定要执行的是哪条route规则 ； 2.检查参数;  3.检查method;  4.加载对应controller文件
+
+	/* 路由匹配规则优先级如下:
+	1. 全匹配	如：/user/login
+	2. 前面全匹配	如：/user/{act}
+	3. 后面全匹配	如：/{act}/login
+	4. 全模糊	如：/{mod}/{act}
+	*/
+
+
+
+	连起来完整的一个请求就是(为了更好的体验，将 route 和 request 的控制反转了过来, 让 route 做的事情给 request 做了):
+
+	get请求:
+	get("/user/login.php?name=awen&passwd=123")
+		->where("name", '')->where('passwd', '')
+		->run();
+
+	post请求:
+	post("/user/login.php")
+		->where("name", '')->where('passwd', '')	// where, header, cookie, session 和 form 并没有先后顺序之分，唯一要注意的是，它们都需要在 run() 之前执行 
+		->header("Content-Type", "text-plain")
+		->cookie("mycookie", "1213231")
+		->session("mysession", "3121312")
+		->form("name")->form("passwd")
+		->run();
+
+
+	
+	如果有文件需要上传:
+	
+	route("/user/logo/upload")->form("logo", "/path/to/logo.png");
+	route("/user/logo/upload")->form("logo", "/path/to/logo.png", "file");
+	route("/user/logo/upload")->form("logo", "@/path/to/logo.png");
+
+	route("/user/logo/upload")->run();
+
+
+
+
+	======================   路由 由 模块组合而成 ========================
+
+	1. 登录验证	&	2. 统一输出格式为  json			将 请求分散到 module
+	route("/{mod}/{act}")
+		->into("/mod/user/auth")
+		->into("/mod/{mod}/{act}")				//两个参数来自route的匹配结果
+		->into("/output/auto/{data}", PIPE_DATA);		//第一个参数来自上一个 mod
+
+	route("/user/login")
+		->into("/mod/user/login")
+		->into("/output/json/{data}", PIPE_DATA);
+
+	route("/user/login/{format}")
+		->into("/mod/{mod}/{act}")
+		->into("/output/auto/{data}/{format}", PIPE_DATA);	//第一个参数来自上一个 mod， 第二个及以后的参数来自 http 请求
+
+
+
+	======================= 设置模块到文件的映射 =======================
+
+	mod("/user/login/{name}/{passwd}")->map(function ($name, $passwd){});		//映射模块 为一个处理函数
+
+	mod("/user/login/{name}/{passwd}")->map("class:\user\Login::run");		//映射模块 到具体的类和方法
+
+	mod("/user/login/{name}/{passwd}")->map("func:/user/login.php::run");		//映射模块 到具体的文件和函数
+
+	mod("/user/login/{name}/{passwd}")->map("script:/user/login.php");		//映射模块 到一个脚本文件
+	
+	mod("/{mod}/{act}/")->map("class:\{mod}\{Act}::run");				//一个通用的“自然模块”应该是这样子的:
+
+
+
+	======================= 设置模块的参数规则 ==========================
+
+	mod("/items/add/{uid}/{item}/{num}")->where("uid", "")->where("item", "")->where("num", "");
+
+	mod("/coin/dec/{uid}/{coin}")->where("uid", "")->where("coin", "");
+
+
+
+
+	======================= 直接调用模块 =====================
+
+	mod("/items")->add("awen", "card", 11);
+
+	mod("/coin")->dec("awen", 11 * 12);
+
+
+
+
+
+	======================	完整例子  ========================
+	1.  
+
+	require "./app/app.php";
+	route("/{mod}/{act}")->into("/{$mod}/{$act}");
+
+	mod("/user/login/{name}/{passwd}")->where("name",'/\w+/')->where("passwd", '/\w+/');
+	mod("/item/buy/{uid}/{item}/{num}")->where("uid", ...);
+	mod("/item/sell/{uid}/{item}/{num}")->where("uid", ...);
+	....
+
+	request()->match()->run();
+
+
+	2.
+
+	require	"./app/app.php";
+	route("/{mod}/{act}")
+		->into("/inner/user/auth")		//登录教研
+		->into("/{$mod}/{$act}")		//将所有路由自然定向至对应的modules
+		->finally("/output/auto/{data}/{format}", PIPE_FROM_DATA, 0);	//无论上一个module是否成功， 它都会被执行; data 来自上一个module, format来自 http 请求的参数(参数名为 format)
+
+	route("/user/login")				//登录的路由另作处理
+		->into("/user/login")			//调用模块
+		->into("/output/auto/{data}/json", PIPE_FROM_DATA, 0);	//输出结果
+
+	route("/inner/*")->visible(false);		//禁用一些路由
+	
+	mod("/user/login/{name}/{passwd}")->where("name",'/\w+/')->where("passwd", '/\w+/');
+	mod("/output/auto/{data}/{format}")->where("format", ['enum', ['json','xml','html']]);
+	mod("/inner/item/add/{uid}/{item}/{num}");
+	mod("/inner/coin/dec/{uid}/{num}");
+	....
+
+	request()->match()->run();
+
+
+
+	
+	3.
+
+	require	"./app/app.php";	
+
+	//先生成各个小的模块 
+	mod("/user/auth/");
+	mod("/user/login/{name}/{passwd}")->where("name",'/\w+/')->where("passwd", '/\w+/');
+	mod("/output/auto/{data}/{format}")->where("format", ['enum', ['json','xml','html']]);
+	mod("/item/add/{uid}/{item}/{num}");
+	mod("/coin/dec/{uid}/{num}");
+	mod("/admin/auth/");
+	....
+
+	//由模块组成 一个请求
+	route("/user/login")->to("/user/login");
+	route("/item/buy")->to("/user/auth")->to("/item/add")->to("/coin/dec")->finally("/output/auto/{data}/{format}", PIPE_FROM_DATA, 0);
+	route("/admin/add")->to("/admin/auth")->to("/item/add")->finally("/output/auto/{data}/{format}", PIPE_FROM_DATA, 0);
+
+	request()->match()->run();
+
+	
