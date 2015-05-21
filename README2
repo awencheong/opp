@@ -127,17 +127,39 @@
 
 	======================= 设置模块到文件的映射 =======================
 
-	mod("/user/login/{name}/{passwd}")->map(function ($name, $passwd){});		//映射模块 为一个处理函数
+	map("user/login/")->to(function ($name, $passwd){});		//映射模块 为一个处理函数
+		->where(0, 'required', 'str')				//第一个参数必须是字符串
+		->where(1, 'required', 'str', 'len()>6');	//第二个参数长度必须大于6
 
-	mod("/user/login/{name}/{passwd}")->map("class:\user\Login::run");		//映射模块 到具体的类和方法
+	map("user/login/")->to("object:User(email)->Login(password)");		//映射模块 对象的方法
 
-	mod("/user/login/{name}/{passwd}")->map("func:/user/login.php::run");		//映射模块 到具体的文件和函数
+	map("user/login/")->to("class:User::Login(email, password)");			//映射模块 类静态方法
 
-	mod("/user/login/{name}/{passwd}")->map("script:/user/login.php");		//映射模块 到一个脚本文件
+	map("user/login/")->to("function:user/login.php::run(email, password)");		//映射模块 到具体的文件和函数
+
+	map("user/login/")->to("script:/user/login.php{email, password}");				//映射模块 到一个脚本文件,参数用 $argv 传递
 	
-	mod("/{mod}/{act}/")->map("class:\{mod}\{Act}::run");				//一个通用的“自然模块”应该是这样子的:
+	map("{mod}/{act}/")->to("class:\{mod}\{Act}::run");				//一个通用的“自然模块”应该是这样子的:
 
 
+	// 创建一个 module
+	map("user/login")->to("object:ModuleUser(email)->Login(passwd, token)")
+			->where("email", "required", "str", '/^\w+(\.\w+)*@\w+(\.\w+)');	//email 的过滤
+			->where("passwd", "required", "str", 'len()>6');	//密码长度大于6
+			->where("age", "required", "int", '>0', '<200');	// 0 < 年纪 < 200
+
+	// 执行一个 module ，得到结果
+	mod("user/login/awen@email.com/mypassword/10");							//执行方式1: 优雅链接的方式, 看起来就像是个 url请求
+	mod("user/login", "awen@email.com", "mypassword", "10");				//执行方式2： 参数传递，当参数是个数组的时候，无法进行 "优雅链接" 方式调用，则可以采用这种方式;
+	mod_apply("user/login", array("awen@email.com", "mypassword", "10"));	//执行方式3： 将所有参数打包传进 module, 执行并返回结果
+
+
+	// 上面是展示一个业务逻辑， 下面展示一个真正的常用模块： 获取用户信息 //
+
+	map("user/info")->to("ModuleUser::Info(email)")
+			->where("email", "required", "str", '/^\w+(\.\w+)*@\w+(\.\w+)');	//email 的过滤
+
+	mod("user/info/awen@email.com");	//返回 数组 array("name"=>"awen", "age"=>10, "country"=>"china", ....)
 
 	======================= 设置模块的参数规则 ==========================
 
