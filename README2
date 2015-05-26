@@ -3,6 +3,7 @@
 
 
 ！！！！！！！！！！解决 A -> B -> A 的跳转问题！！！！！！！！！！！！！
+！！！！！！！！！！解决 debug困难问题（能够方便查看所有的 sql 输入输出）！！！！！！！！！！！！！
 
 
 1. 结构应该遵循：
@@ -43,10 +44,10 @@
 
 
 
-	route("/user/login/{name}/{passwd}/")->where("name", '/\w+/')->where("passwd", '/\w+/');	//给路由设置 参数过滤规则
-	route("/user/login/{name}/{passwd}/")->where("name", ['/\w+/', 'required', 'str']);
+	route("/user/login")->where("name", '/\w+/')->where("passwd", '/\w+/');	//给路由设置 参数过滤规则
+	route("/admin/user/delete", 3)->where("name", ['/\w+/', 'required', 'str']);	//默认的 path 是前两个 admin/user, 也可以通过第二个参数, 设置特殊情况下的 path: admin/user/delete 
 	
-	route("/user/login/{name}/{passwd}/")->only(["post", "get"]);		//设置路由所允许的 method 
+	route("/user/login/")->only(["post", "get"]);		//设置路由所允许的 method 
 
 				
 	route("/{mod}/{act}/")->only("post");		//路由模糊匹配规则	
@@ -61,7 +62,7 @@
 
 
 
-	route("/user/login/{name}/{passwd}/") 		//路由规则 匹配 请求
+	route("/user/login/{name}/{passwd}")->where("name", '/\w+/')->where("passwd", '/\w+/'); //路由规则 匹配 请求	,  "{name}/{passwd}" 表示：当参数以优雅链接的形式传入时， 第一个为 "name", 第二个为 "passwd" 
 
 			||
 		对应下面的请求
@@ -69,6 +70,7 @@
 
 	r = post("/user/login/")->form("name","awen")->form("passwd", 123);
 	r = get("/user/login?name=awen&passwd=123");		
+	r = get("/user/login/awen/123");			//这个参数的顺序，由 route("/user/login/{name}/{passwd}") 决定
 	r = put("/user/login?name=awen&passwd=123");		
 	r = delete("/user/login?name=awen&passwd=123");
 
@@ -84,16 +86,14 @@
 
 
 
-	连起来完整的一个请求就是(为了更好的体验，将 route 和 request 的控制反转了过来, 让 route 做的事情给 request 做了):
+	连起来完整的一个请求就是(为了更好的体验，将 route 隐藏起来了，这样更接近 url 的实际操作了)
 
 	get请求:
 	get("/user/login.php?name=awen&passwd=123")
-		->where("name", '')->where('passwd', '')
 		->run();
 
 	post请求:
 	post("/user/login.php")
-		->where("name", '')->where('passwd', '')	// where, header, cookie, session 和 form 并没有先后顺序之分，唯一要注意的是，它们都需要在 run() 之前执行 
 		->header("Content-Type", "text-plain")
 		->cookie("mycookie", "1213231")
 		->session("mysession", "3121312")
