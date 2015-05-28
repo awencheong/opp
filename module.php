@@ -143,6 +143,7 @@
 					$rule[$a] = 1;
 				}
 			}
+			return $this;
 		}
 
 		public function call() {
