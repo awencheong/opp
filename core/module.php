@@ -41,7 +41,7 @@
 		 * @param	path, format like : /path/to/module($param1, $param2, ...)
 		 */
  		public function __construct($path) {
-			if (!preg_match('/\/([\w-_\/]+)(\(\s*[\w-_]+(\s*,\s*[\w-_]+\s*)*\))$/', $path, $match)) {
+			if (!preg_match('/\/?([\w-_\/]+)(\(\s*[\w-_]+(\s*,\s*[\w-_]+\s*)*\))$/', $path, $match)) {
 				return $this->_error("wrong path:{$path}");
 			}
 			$path = array_filter(explode("/", $match[1]));
@@ -84,17 +84,26 @@
 								case ($r == 'int' && (!is_numeric($pm) || intval($pm) != $pm)):
 									return $this->_error("param[{$name}] should be an int");
 
+								case ($r == 'obj' && (!is_object($pm))):
+									return $this->_error("param[{$name}] should be an int");
+
 								case ($r == 'str' && !is_string($pm)):
 									return $this->_error("param[{$name}] should be a string");
 
 								default: 
 									switch (true) {
 
-										case (preg_match('/^\/.+\/$/', $r) && !preg_match($r, $pm)) :	//正则匹配
+										case (preg_match('/^\/.+\/$/', $r) && !preg_match($r, $pm)) :	//正则匹配		/.../
 											return $this->_error("param[{$name}] should be match preg $r");
 
+										case (preg_match('/^instanceof\(([\w_-]+)\)$/i', $r, $class) && !($pm instanceof $class[1])) :	//instanceof class
+											return $this->_error("param[{$name}] should be instace of {$class[1]}");
 
-										case (preg_match('/^len\(\)([<>=]+)([0-9]+)$/i', $r, $len_cmp)) :
+										case (preg_match('/^is_subclass_of\(([\w_-]+)\)$/i', $r, $class) && !(is_subclass_of($pm, $class[1]))) :	//instanceof class
+											return $this->_error("param[{$name}] should be subclass of {$class[1]}");
+
+
+										case (preg_match('/^len\(\)([<>=]+)([0-9]+)$/i', $r, $len_cmp)) :	//字符串长度 	len()>10
 											$cmp = $len_cmp[1];
 											$len = intval($len_cmp[2]);
 											switch (true) {
@@ -139,7 +148,10 @@
 				if (in_array($a, array('required', 'str', 'num', 'int'))) {
 					$rule[$a] = 1;
 				}
-				if (preg_match('/^len\(\)[<>=]+[0-9]+$/', $a) || preg_match('/\/.*\/$/', $a)) {
+				if (preg_match('/^len\(\)[<>=]+[0-9]+$/', $a) 
+					|| preg_match('/\/.*\/$/', $a) 
+					|| preg_match('/^instanceof\([\w-_]+\)/i', $a)
+					|| preg_match('/^is_subclass_of\([\w-_]+\)/i', $a)) {
 					$rule[$a] = 1;
 				}
 			}
