@@ -46,7 +46,7 @@
 			if (!preg_match('/\/?([\w-_\/]+)(\(\s*[\w-_]+(\s*,\s*[\w-_]+\s*)*\))$/', $path, $match)) {
 				return $this->_error("wrong path:{$path}");
 			}
-			if (!$root) {
+			if ($root) {
 				$this->root = $root;
 			}
 			$path = array_filter(explode("/", $match[1]));
@@ -178,7 +178,11 @@
 			$path = $this->path;
 			$func = array_pop($path);
 			if ($path) {
-				$file = implode("/", $path) . ".php";
+				if (!$this->root) {
+					$file =  implode("/", $path) . ".php";
+				} else {
+					$file = $this->root . "/" . implode("/", $path) . ".php";
+				}
 				if (!file_exists($file)) {
 					return $this->_error("file {$file} not found");
 				}
