@@ -37,12 +37,17 @@
 
 		private $force_check = false;
 
+		private $root = null;
+
  		/*
 		 * @param	path, format like : /path/to/module($param1, $param2, ...)
 		 */
- 		public function __construct($path) {
+ 		public function __construct($path, $root=null) {
 			if (!preg_match('/\/?([\w-_\/]+)(\(\s*[\w-_]+(\s*,\s*[\w-_]+\s*)*\))$/', $path, $match)) {
 				return $this->_error("wrong path:{$path}");
+			}
+			if (!$root) {
+				$this->root = $root;
 			}
 			$path = array_filter(explode("/", $match[1]));
 			$this->path = array_values($path);
