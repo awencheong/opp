@@ -9,6 +9,11 @@ class	App {
 
 	private $io = array();
 
+	private $io_wrap;
+	private $io_recorder_file;
+	const IO_WRAP_RECORD = 1;
+	const IO_WRAP_PROXY = 2;
+
 	private $errmsg = null;
 
 	private $mod_root = null;
@@ -18,14 +23,22 @@ class	App {
 	}
 
 	public function __get($name) {
-		return $this->io[$name];
+		$io = $this->io[$name];
+		switch ($this->io_wrap) {
+			case self::IO_WRAP_RECORD:
+				return new __IoRecorder($io, $this->io_recorder_file, __IoRecorder::RECORD);
+			case self::IO_WRAP_PROXY:
+				return new __IoRecorder($io, $this->io_recorder_file, __IoRecorder::PROXY);
+			default:
+				return $io;
+		}
 	}
 
 	public function __isset($name) {
 		return isset($this->io[$name]);
 	}
 
-	public function set_mod_root($root) {
+	public function set_module_root($root) {
 		$this->mod_root = $root;
 	}
 
@@ -38,7 +51,7 @@ class	App {
 	private function _log($level, $msg) {
 		switch ($level) {
 			case self::LOG_LEV_ERROR: 
-				echo $msg;
+				echo $msg . "\n";
 				break;
 			default :
 				/* do nothing */
@@ -47,16 +60,48 @@ class	App {
 	}
 
 	public function call() {
+		$this->io_wrap = null;
 		$args = func_get_args();
 		if (!$args) {
 			return $this->_error("call() func must have at least 1 param");
 		}
 		$path = array_shift($args);
-		$mod = new Module($this->mod_root . "/" . $path);
+		return $this->_call_mod($path, $args);
+	}
+
+	public function record() {
+		$this->io_wrap = self::IO_WRAP_RECORD;
+		$args = func_get_args();
+		if (count($args) < 2) {
+			return $this->_error("record() func must have at least 2 param");
+		}
+		$path = array_shift($args);
+		$this->io_recorder_file = array_pop($args);
+		return $this->_call_mod($path, $args);
+	}
+
+	public function test() {
+		$this->io_wrap = self::IO_WRAP_PROXY;
+		$args = func_get_args();
+		if (count($args) < 2) {
+			return $this->_error("test() func must have at least 2 param");
+		}
+		$path = array_shift($args);
+		$this->io_recorder_file = array_pop($args);
+		return $this->_call_mod($path, $args);
+	}
+
+	private function _call_mod($path, $args) {
 		try {
-			return call_user_func_array(array($mod, "call"), $args);
+			$mod = new Module($path, $this->mod_root);
+			$result = call_user_func_array(array($mod, "call"), $args);
+			if (false === $result) {
+				return $this->_error($mod->error());
+			} else {
+				return $result;
+			}
 		} catch (Exception $e) {
-			return $this->_error("call() func failed: err" . $e->getMessage());
+			return $this->_error("_call_mod() func failed: err" . $e->getMessage());
 		}
 	}
 
@@ -78,7 +123,7 @@ function app() {
 	return App::instance();
 }
 
-class	__IoRecoder {
+class	__IoRecorder {
 	private $io;
 	private $data_file;
 	private $operation;
@@ -99,7 +144,7 @@ class	__IoRecoder {
 	const	CHUNK_SIZE_BYTES = 16;
 
 	public function __construct($io, $data_file, $operation) {
-		if ($operation != self::PROXY || $operation != self::RECORD) {
+		if ($operation != self::PROXY && $operation != self::RECORD) {
 			throw new Exception("unknown operation: $operation");
 		}
 		$this->io = $io;
@@ -109,6 +154,7 @@ class	__IoRecoder {
 
 	private function _error($errmsg) {
 		$this->errmsg = $errmsg;
+		throw new Exception($this->errmsg);
 		return false;
 	}
 	

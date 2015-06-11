@@ -18,6 +18,12 @@ if (!defined("APP_MON_DEFAULT")) {
 	define("APP_MON_DEFAULT", 0);
 }
 
+//	是否记录测试用例
+//	（默认不打开用例记录)
+if (!defined("APP_RECORD_TEST_CASE")) {
+	define("APP_RECORD_TEST_CASE", 0);
+}
+
 //
 // 	APP_MON_DURATION, 	监控耗时
 // 	APP_MON_MEMORY, 	监控内存使用量
