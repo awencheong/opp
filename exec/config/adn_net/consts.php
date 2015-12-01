@@ -1,0 +1,63 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: awencheong
+ * Date: 2015/10/13
+ * Time: 15:00
+ */
+namespace Mob\console\config\adn_net;
+
+const AD_SOURCE_API_OFFER = 1;
+const AD_SOURCE_MY_OFFER = 2;
+const AD_SOURCE_FACEBOOK = 3;
+const AD_SOURCE_MOBVISTA = 4;
+const AD_SOURCE_PUBNATIVE =  5;
+const AD_SOURCE_ADMOB = 6;
+
+const CAMPAIGN_TAG_API_OFFER_ADMIN =  1; // 管理员添加的api offer
+const CAMPAIGN_TAG_API_OFFER_ADVERTISER =  2; // 广告主添加的api offer
+const CAMPAIGN_TAG_MY_OFFER =  3; // 渠道在M系统天机的my offer
+
+const CAMPAIGN_STATUS_ACTIVE= 1; // 激活
+const CAMPAIGN_STATUS_PAUSED= 2; // 人工暂停
+const CAMPAIGN_STATUS_DELETED= 3; // 已删除
+const CAMPAIGN_STATUS_PENDING= 4; // 等候处理
+const CAMPAIGN_STATUS_REJECTED= 5; // 已拒绝
+const CAMPAIGN_STATUS_UNFINISHED= 6; // 未完成
+const CAMPAIGN_STATUS_REVIEW= 7; // 审核中
+const CAMPAIGN_STATUS_OUT_OF_DAILY_BUDGET= 8; // 超出每日预算
+const CAMPAIGN_STATUS_OUT_OF_TOTAL_BUDGET= 9; // 超出总预算
+const CAMPAIGN_STATUS_OUT_OF_BALANCE= 10; // ？？？
+const CAMPAIGN_STATUS_OUT_OF_DAILY_CAP= 11; // 超出每日cap
+const CAMPAIGN_STATUS_ADVERTISER_PAUSED_FROM_ACTIVE= 12; // 由pending状态切换到广告主暂停状态，重新开启后需恢复原状态
+const CAMPAIGN_STATUS_ADVERTISER_PAUSED_FROM_PENDING= 13; // 由active状态切换到广告主暂停状态，重新开启后需恢复原状态
+
+const SDK_DETECT_TO_SYNC = 1;
+const SDK_DETECT_NOT_TO_SYNC = 0;
+const SDK_DETECT_UNABLE_TO_SYNC = 2;
+
+
+const CAMPAIGN_CATEGORY_NO_LIMIT = 0;
+const CAMPAIGN_CATEGORY_GAME = 1;
+const CAMPAIGN_CATEGORY_APPLICATION = 2;
+const CAMPAIGN_CATEGORY_BRAND = 3;
+const CAMPAIGN_CATEGORY_E_COMMERCE = 4;
+
+
+// 图片尺寸
+const IMAGE_SIZE_ID_UNKOWN= 0;
+const IMAGE_SIZE_ID_320X50= 2;
+const IMAGE_SIZE_ID_300X250= 3;
+const IMAGE_SIZE_ID_480X320= 4;
+const IMAGE_SIZE_ID_320X480= 5;
+const IMAGE_SIZE_ID_300X300= 6;
+const IMAGE_SIZE_ID_1200X627= 7;
+
+const IMAGE_SIZE_STR_320X50= '320x50';
+const IMAGE_SIZE_STR_300X250= '300x250';
+const IMAGE_SIZE_STR_480X320= '480x320';
+const IMAGE_SIZE_STR_320X480= '320x480';
+const IMAGE_SIZE_STR_300X300= '300x300';
+const IMAGE_SIZE_STR_1200X627= '1200x627';
+
+
