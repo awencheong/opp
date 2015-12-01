@@ -57,19 +57,34 @@ this is a tiny php framework
 	|
 	core	---------------------------- 核心类 目录, 该目录中的类不能随意修改，否则会影响整个框架的稳定性
 	|	|
-	|	|-----	consts.php	常量定义
+	|	|-----	consts.php	常量定义 ： 所有常量定义 只关于 core 目录内
 	|	|
-	|	|-----	app.class.php	框架基类
+	|	|-----	App.php	        框架基类 ： app入口
 	|	|
-	|	|-----	monitor.class.php	监控
+	|	|-----	Monotor.php	监控     ： 监控入口
 	|	|
-	|	|-----	doc.class.php	文档类
+	|	|-----	Doc.php	        文档类   ： 文档入口
 	|	|
-	|	|-----	tools		核心工具类目录
-	|		|
-	|		|----- shm.class.php		共享内存类	(依赖于 shm 扩展)
-	|		|
-	|		|----- mmap.class.php		内存映射文件 	(依赖于 mmap 扩展)
+	|	|-----	lib		核心工具类目录, 该目录下的类文件不会依赖任何其他文件（php扩展除外）
+	|	|	|
+	|	|	|----- ShmArr.php	基于共享内存的 key=>value 数组	(依赖于 shm 扩展)
+	|	|	|
+	|	|	|----- MmapStream.php	基于mmap的stream	 	(依赖于 mmap 扩展)
+	|	|	|
+	|	|	|----- HttpPost.php     http post 对象
+	|	|	|
+	|	|	|----- HttpGet.php     	http get 对象
+	|	|	|
+	|	|	|----- Post.php         post 对象
+	|	|	|
+	|	|	|----- Get.php     	get 对象
+	|	|
+	|	|
+	|	|-----	modules         常用模块目录， 该目录下的模块类是基于 core/lib 创建起来的
+	|	|	|
+	|	|	|----- shm.class.php		共享内存类	(依赖于 shm 扩展)
+	|	|	|
+	|	|	|----- mmap.class.php		内存映射文件 	(依赖于 mmap 扩展)
 	|		
 	|		
 	admin	---------------------------- 管理后台 目录, 用来访问监控数据 和 代码文档的web入口
