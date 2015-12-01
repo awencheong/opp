@@ -1,5 +1,5 @@
 <?php
-	namespace	opp\sql;
+	namespace	app\sql;
 
 	class mysqlpdo {
 
