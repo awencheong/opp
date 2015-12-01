@@ -160,6 +160,11 @@ app/app.php
 	//所有操作都基于：  path + method 
 	//规则优先级如下：  only = allow = deny, 以最后一个设置为准生效;   must 独立作用，与其他三个互不依赖；
 	
+	// path前缀 对应的 namespace 
+	//默认会设置 / 为 \app\modules\
+	app()->router("/")->mapto("\app\modules\");
+	app()->router("/user/")->mapto("\app\modules\userv2\");
+	
 	//默认全部模块都可以路由到
 	app()->router("*")->allow();		//等价于  allow("*", "*");	allow($path, $method);
 	app()->router("/user/Delete")->deny();	//假设该模块只在内部调用，或者控制台使用
