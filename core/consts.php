@@ -3,16 +3,25 @@
 //
 // const.php  应该放在目录 "OPP_ROOT/core/" 下
 //
-if (!defined("OPP_ROOT")) {
-	define("OPP_ROOT", dirname(dirname(__FILE__)));
+if (!defined("CORE_ROOT")) {
+	define("CORE_ROOT", dirname(__FILE__));
+}
+if (!defined("APP_ROOT")) {
+	define("APP_ROOT", CORE_ROOT . "/..");
 }
 
 //
 //	默认是否打开监控
 //	(默认是不打开监控的)
 //
-if (!define("APP_MON_DEFAULT")) {
+if (!defined("APP_MON_DEFAULT")) {
 	define("APP_MON_DEFAULT", 0);
+}
+
+//	是否记录测试用例
+//	（默认不打开用例记录)
+if (!defined("APP_RECORD_TEST_CASE")) {
+	define("APP_RECORD_TEST_CASE", 0);
 }
 
 //

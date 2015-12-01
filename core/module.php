@@ -37,12 +37,19 @@
 
 		private $force_check = false;
 
+		private $root = null;
+
+		private static $required_files = array();
+
  		/*
 		 * @param	path, format like : /path/to/module($param1, $param2, ...)
 		 */
- 		public function __construct($path) {
+ 		public function __construct($path, $root=null) {
 			if (!preg_match('/\/?([\w-_\/]+)(\(\s*[\w-_]+(\s*,\s*[\w-_]+\s*)*\))$/', $path, $match)) {
-				return $this->_error("wrong path:{$path}");
+				throw new Exception ("wrong path:{$path}");
+			}
+			if ($root) {
+				$this->root = $root;
 			}
 			$path = array_filter(explode("/", $match[1]));
 			$this->path = array_values($path);
@@ -173,20 +180,32 @@
 			$path = $this->path;
 			$func = array_pop($path);
 			if ($path) {
-				$file = implode("/", $path) . ".php";
+				if (!$this->root) {
+					$file =  implode("/", $path) . ".php";
+				} else {
+					$file = $this->root . "/" . implode("/", $path) . ".php";
+				}
 				if (!file_exists($file)) {
 					return $this->_error("file {$file} not found");
 				}
-				include "$file";
+				$this->_include_file($file);
 				if (!function_exists($func)) {
 					return $this->_error("function {$func}() not found in file {$file}");
 				}
 			} else {
 				if (!function_exists($func)) {
-					return $this->_error("function {$func}() not found in module {$path}");
+					return $this->_error("function {$func}() not found in module ".implode("/", $path).".");
 				}
 			}
 			return call_user_func_array($func, $params);
+		}
+
+		private function _include_file($file) {
+			if (!isset(self::$required_files[$file]) && ($real_path = realpath($file)) && !isset(self::$required_files[$real_path])) {
+				self::$required_files[$file] = 1;
+				self::$required_files[$real_path] = 1;
+				include $real_path;
+			}
 		}
 
  }
