@@ -71,26 +71,31 @@ this is a tiny php framework
 	|	|	|
 	|	|	|----- MmapStream.php	基于mmap的stream	 	(依赖于 mmap 扩展)
 	|	|	|
-	|	|	|----- HttpPost.php     http post 对象
-	|	|	|
-	|	|	|----- HttpGet.php     	http get 对象
-	|	|	|
 	|	|	|----- Post.php         post 对象
 	|	|	|
 	|	|	|----- Get.php     	get 对象
+	|	|	|
+	|	|	|----- Route.php     	路由对象
 	|	|
 	|	|
 	|	|-----	modules         常用模块目录， 该目录下的模块类是基于 core/lib 创建起来的
 	|	|	|
-	|	|	|----- shm.class.php		共享内存类	(依赖于 shm 扩展)
+	|	|	|----- http                 http 相关工具
+	|	|	|	|
+	|	|	|	|----- Post.php     http post 对象
+	|	|	|	|
+	|	|	|	|----- Get.php     	http get 对象
+	|	|	|	|
+	|	|	|	|----- Route.php    http 路由对象
 	|	|	|
-	|	|	|----- mmap.class.php		内存映射文件 	(依赖于 mmap 扩展)
+	|	|	|
+	|	|	|
+	|	|	|
+	|	|	|
+	|	|	|
 	|		
 	|		
-	admin	---------------------------- 管理后台 目录, 用来访问监控数据 和 代码文档的web入口
 	|
-	|
-	modules	---------------------------- 常用建站模块 目录, 用户可以自主添加一些自认为常用的模块
 	|
 	|
 	tools	---------------------------- 常用小工具 目录, 用户可以自主添加一些自认为常用的小工具
