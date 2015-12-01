@@ -59,11 +59,13 @@ this is a tiny php framework
 	|	|
 	|	|-----	consts.php	常量定义 ： 所有常量定义 只关于 core 目录内
 	|	|
-	|	|-----	App.php	        框架基类 ： app入口
+	|	|-----	app.php	        框架基类 ： app入口
 	|	|
-	|	|-----	Monotor.php	监控     ： 监控入口
+	|	|-----	monotor.php	监控     ： 监控入口
 	|	|
-	|	|-----	Doc.php	        文档类   ： 文档入口
+	|	|-----	doc.php	        文档类   ： 文档入口
+	|	|
+	|	|-----	test.php	测试类   ： 测试入口
 	|	|
 	|	|-----	lib		核心工具类目录, 该目录下的类文件不会依赖任何其他文件（php扩展除外）
 	|	|	|
@@ -76,54 +78,74 @@ this is a tiny php framework
 	|	|	|----- Get.php     	get 对象
 	|	|	|
 	|	|	|----- Route.php     	路由对象
+	|	|	|
+	|	|	|----- Csv.php     	路由对象
+	|	|	|
+	|	|	|----- SimpleRedis.php     	redis对象	(依赖于 redis 扩展)	
+	|	|	|
+	|	|	|----- SimpleMemcached.php     	memcached对象	(依赖于 memcached 扩展)	
+	|	|	|
+	|	|	|---- sql
+	|	|	|	|----- MysqlPdo.php	mysqlpdo类	(依赖于 mysql_pdo 扩展)
+	|	|	|	|
+	|	|	|	|----- Mysqli.php	mysqli类	(依赖于 mysqli 扩展)
+	|	|	|	|
+	|	|	|	|----- Postsql.php	postsql类	(依赖于 postsql 扩展)
+	|	|	|	
+	|	|	|---- test/	测试目录
 	|	|
 	|	|
 	|	|-----	modules         常用模块目录， 该目录下的模块类是基于 core/lib 创建起来的
 	|	|	|
 	|	|	|----- http                 http 相关工具
 	|	|	|	|
-	|	|	|	|----- Post.php     http post 对象
+	|	|	|	|----- HttpPost.php     http post 对象
 	|	|	|	|
-	|	|	|	|----- Get.php     	http get 对象
+	|	|	|	|----- HttpGet.php     	http get 对象
 	|	|	|	|
-	|	|	|	|----- Route.php    http 路由对象
+	|	|	|	|----- HttpRoute.php    http 路由对象
+	|	|	|	|
+	|	|	|	|----- Http.php    	http 对象, 集 post, get, route ,cookie, session 等一身，方便使用
+	|	|	|	
+	|	|	|---- test/	测试目录
+	|	|	
+	|	|	
+	|	|-----	test		测试目录， 原则上，core目录内 每添加一个 文件，都应该在其根目录下创建一个test文件夹，并写
+	|	|	|		好充分的测试用例，然后执行 Test.php 入口文件，以便确保项目执行OK。
 	|	|	|
+	|	|	|-----	TestApp.php	        测试 app入口
+	|	|
+	|	|	|-----	TestMonotor.php		监控     ： 监控入口
 	|	|	|
-	|	|	|
-	|	|	|
-	|	|	|
-	|	|	|
-	|		
-	|		
+	|	|	|-----	TestDoc.php	        文档类   ： 文档入口
 	|
 	|
 	|
-	tools	---------------------------- 常用小工具 目录, 用户可以自主添加一些自认为常用的小工具
+	myapp	---------------------------- 用户自定义项目 "app" 的文件, 可以参考 core 目录
 		|
 		|
 		|
-		|---- queue	队列存储
-		|	|
-		|	|----- redis.class.php		redis类		(依赖于 redis 扩展)
-		|	|
-		|	|----- memcached.class.php	memcached类	(依赖于 memcached 扩展)
+		|-----	consts.php	myapp 项目的 常量定义
 		|
+		|-----	app.php		myapp web API 入口
+		|			* 入口文件：基于 core/ 构建而成, 通常应该是个 可执行脚本，而不是 class 文件
 		|
-		|---- hash	key-value 存储
-		|	|
-		|	|----- redis.class.php		redis类		(依赖于 redis 扩展)
-		|	|
-		|	|----- memcached.class.php	memcached类	(依赖于 memcached 扩展)
+		|-----	monitor.php	myapp 监控入口
+		|
+		|-----	doc.php	        myapp 文档入口
 		|	
+		|-----	test.php	myapp 测试入口
+		|	
+		|-----	modules/        myapp的模块目录
+		|	|
+		|	|-----	test/	modules/的测试目录
+		|	
+		|	
+		|-----	lib/		myapp的库目录
+		|	|
+		|	|-----	test/	modules/的测试目录
 		|
-		|---- sql
-		|	|----- mysqlpdo.class.php	mysqlpdo类	(依赖于 mysql_pdo 扩展)
-		|	|
-		|	|----- mysqli.class.php		mysqli类	(依赖于 mysqli 扩展)
-		|	|
-		|	|----- postsql.class.php	postsql类	(依赖于 postsql 扩展)
-		|	|
-		...	...
+		|-----	test/		测试目录
 
 
 
@@ -132,63 +154,126 @@ this is a tiny php framework
 
 
 ********************************* 1. 监控请求 (监控request请求次数) ************************************
-假设你的request 入口函数是  $app->run(), 像这样:
+在 web API 入口设置监控：
+app/app.php
 <?php
-	....
-	index_run();
+	require "../core/App.php";
+	require "../core/Monitor.php";
+	
+	//监控 GET /user/login 请求的次数
+	$func = monitor()->watch(
+		"turnel0",				//监控频道
+		array(app()->web, "response"),  	//需要监控的函数
+		function(){				//触发条件 回调函数
+			return app()->web->path() == "/user/login" && app()->web->method() == "GET"
+		});
+	app()->replace("web", "response", $func);		//替换原先的 app()->web->response() 函数
+	app()->web->response();
 ?>
 
-监控时，设置另一个函数 "myindex" 作为 index_run() 的别名, 并执行:
+在 Monitor 入口查看监控数据:
+app/monitor.php
 <?php
-	...
-	require "{$APP_ROOT}/app.php";
-	app()->monitor("myindex_run", index_run(), $index, APP_MON_TYPE_COUNT);
-	app()->myindex_run();
+	require "../core/Monitor.php";
+	monitor()->report("turnel0");
 ?>
 
 
 
 ********************************* 2. 监控DB (监控 pdo 的 query 时长) ************************************
+在 web API 入口设置监控：
+app/app.php
 <?php
-	...
+	require "../core/App.php";
+	require "../core/Monitor.php";
+	
+	//监控 mysql 的 query 请求耗时 & 参数
+	$func = monitor()->watch(
+		"turnel0",				//监控频道
+		array(app()->db0, "query"), 		//需要监控的函数
+		null,					//触发条件 回调函数
+		APP_MON_RESULT_DURATION | APP_MON_RESULT_PARAMS	//监控内容 (执行时间 & 请求参数)
+		array(APP_MON_FREQUENCY_TIME => 15)	//监控方式（每隔 15 s 监控一次）
+		);
+	app()->replace("db", "query", $func);		//替换原先的 app()->db->query() 函数
+	app()->db->query("SELECT * FROM user_info");
+?>
 
-	/* 通过参数 array("pdo", "query"),  指定监控的method名是 "query"
-	*  通过参数 APP_MON_TYPE_DURATION 指定监控内容为"执行时间"
-	*  通过参数 APP_MON_TYPE_FREQUENCY_TIME, 指定采集频率方式为"按时间间隔"
-	*  通过参数 15m 指定采集频率为 "采集间隔为 15min" ( 这通常意味着 query 函数被非常频繁地调用，以至于设置 1/1000这类的按比例采样已经不适合)
-	*		可用频率单位: m为分钟， s为秒,  h为小时
-	*/
-
-	app()->monitor(array("pdo", "query"), $pdo, APP_MON_TYPE_DURATION, APP_MON_FREQUENCY_TIME, "15m");
-	app()->pdo->query();
+在 Monitor 入口查看监控数据:
+app/monitor.php
+<?php
+	require "../core/Monitor.php";
+	monitor()->report("turnel10");
 ?>
 
 
 
-********************************* 3. 监控DB (同时监控 pdo.query 的时长 和 内存) ************************************
+********************************* 3. 测试用例 ************************************
+//编写测试用例： 用户登录-- 正常登录，用户名不存在，密码错误
+app/modules/user/TestLogin.php
 <?php
-	...
-	/*
-	* 	每 15min 采集一次时长信息
-	*   每 30 次访问后 采集一次内存信息
-	*/
-	app()->monitor(array("pdo", "query"), $pdo, APP_MON_TYPE_DURATION, APP_MON_FREQUENCY_TIME, "15m");
-	app()->monitor(array("pdo", "query"), $pdo, APP_MON_TYPE_MEMORY, APP_MON_FREQUENCY_COUNT, 30);
-	app()->pdo->query();
+namespace	\app\modules\user;
+class	TestLogin
+{
+	public function mycase1()
+	{
+		app()->db->delete("delete from user_info");
+		app()->db->insert("insert into user_info (`name`,`pwd`,`status`) values ('awen','123',0);");
+		
+		/********  模拟执行 web 请求  **********/
+		$res = app()->web->get("/user/login?name=awen&pwd=123");		
+		app()->assert($res['status'] == 0, "wrong status returned [0]");	//登录应该是成功的
+		
+		$res = app()->web->get("/user/login?name=awen2&pwd=123");		// app()->app 对象是 app/ 项目的封装
+		app()->assert($res['status'] == 1, "wrong status returned [0]");	//登录应该报用户名不存在
+		$res = app()->web->get("/user/login?name=awen&pwd=123456");			// app()->app 对象是 app/ 项目的封装
+		app()->assert($res['status'] == 2, "wrong status returned [0]");	//登录应该报密码错误
+	}
+}
 
-
-
-********************************* 4. 获取一个目录下的所有文档信息 ************************************
+app/test.php
 <?php
-	...
-	//获取全部
-	app()->doc("/path/of/code");
-	//模糊搜索
-	app()->doc("/path/of/code", "%name%");
-	//精确搜索
-	app()->doc("/path/of/code", "name");
+require "../core/Test.php";
+test()->run("\app\modules\user\TestLogin");	//根据 `类名`, 自动执行 TestLogin 的所有用例
+test()->namespace("/project/path", "\app");
+test()->auto("/project/path/modules/user");	//根据 `目录路径`, 自动搜索所有用例类并执行 
 
-	// 全库索引暂不考虑 
+
+
+********************************* 4. 自动文档 ************************************
+<?php
+// 写规范化的文档：
+app/module/user/Login.php
+<?
+namespace \app\module\user;
+
+class	Login
+{
+	//@desc		函数描述
+	//@param	$user,  用户名
+	//@param	$pwd,   用户密码
+	//@return	成功返回 0, 失败返回错误代码
+	//@example	内容
+	public function run($user, $pwd)
+	{
+	}
+}
+
+// 获取文档
+app/doc.php
+<?php
+require "../core/doc.php";
+
+doc()->search_namespace("\namespace\path");
+doc()->search_dir("/dir/path");
+doc()->search_class("\class\path");
+doc()->search_file("/file/path");
+
+/*** 通用版本 ****/
+doc()->namespace("/project/path/app", "\app");
+doc()->search("\app\module\user");  					//根据命名空间，查找对应目录下的所有类和method
+doc()->search("\app\module\user\Login");				//根据类名查找该类的所有函数
+doc()->search("/project/path/app/module/user/Login.php", "%run%");	//根据文件名查找该类的 函数名 包含有 "run" 的说明文档
 
 	/* 将返回: [
 	*			函数名	=>	[ 声明， 注释， 例子]
@@ -207,7 +292,8 @@ this is a tiny php framework
 ********************************* 5. 使用一个搜索面板 (包含 排序，多条件查询) ************************************
 <?php
 	...
-	app()->call("/app/module/sort", array(
+	app()->namespace("/project/path", "\app");
+	app()->mod->run("/app/module/sort", array(
 			"db"	=> app()->pdo,
 			"table" => "user",
 			"list"	=> array(
@@ -238,16 +324,36 @@ this is a tiny php framework
 
 ********************************* 5. 使用一个验证码生成器 ************************************
 <?php
-	...
-	app()->call("/app/module/corderbar", array(
+	app()->namespace("/project/path", "\app");
+	调用方式1：	格式固定，不用处理异常
+	app()->mod->run("\app\module\corderbar", array(
 			"target_dir"	=>	"/path/to/dir/"	//放置验证码图片的目录
 	));
 	/* 返回
-	*	[
+	*	{
+	*		"status" => 0,		//状态码
+	*		"data" => {		//数据
+	*			"code" 	=> "ab123",
+	*			"img"	=> "aff03aeas.file",	//随机文件名
+	*		}
+	*	}
+	*
+	*/
+	
+	调用方式2：	更直接，需要自己处理异常
+	try {
+		$mod = app()->mod("\app\module\corderbar");
+		$res = $mod->run( array(
+				"target_dir"	=>	"/path/to/dir/"	//放置验证码图片的目录
+		))
+	} catch (Exception $e) {
+		$err = $e->getMessage();
+	}
+	/* 返回
+	*	{	
 	*		"code" 	=> "ab123",
 	*		"img"	=> "aff03aeas.file",	//随机文件名
-	*	]
-	*
+	*	}
 	*/
 
 ********************************* 6. 使用一个基于共享内存的 cache ************************************
