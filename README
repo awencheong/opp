@@ -186,6 +186,51 @@ app/app.php
 		return json_encode($params);
 	});
 	
+		
+	"/admin/articles/list/12/json" > "role=admin", "/articles/list?page=12", "format=json" >  "/user/permission('admin')", "/articles/list(12)", "/format($context)"
+	
+	app()->route("format=json", QUERY)->to("\format($CTX)");				//$CTX 关键字， 上下文内容
+	app()->route("/articles/list", PATH)->to("\articles\list($page)");		//$_RQEUEST['page']
+	app()->route("role=admin", QUERY)->to("\user\permission($SRV_PATH)");	//$SRV_xx关键字， 即 $_SERVER[xx]
+	
+	// 将 路径 映射成 (路径 + 参数) 的规则
+	app()->rule("/admin/*")->to(null, array('role'=>'$1'));	//$1 表示第一个路径目录， 依次类推， $2表示第二个, $3表示第三个....., $F 表示第一个， $L 表示最后一个
+	app()->rule("*/json")->to(null, array('format'=>'$L'));
+	
+	$req = app()->fetch_request("/admin/articles/list/12/json");  
+	/* 获取请求参数应当返回 (路径，参数)：  
+	[	
+		(null, "role=admin"),
+		("/articles/list/12", {"page":12}),
+		(null, "format=json")
+	]
+	*/
+	
+	app()->fetch_modules($req);
+	/* 获取对应的模块执行序
+	[
+		("\user\permission", [$SERVER['PATH_INFO']]),	//来自$SRV_PATH
+		("\articles\list", [12]),	//来自上$_RQEUEST
+		("\format", [$CTX])			//来自上一个mod的输出
+	]
+	
+	
+	
+	"/admin/articles/list/12/json" > "role=admin", "/articles/list?page=12", "format=json" >  "/user/permission('admin')", "/articles/list(12)", "/format($context)"
+	app()->route("/(json|xml|html)")->to("\format($CTX, $1)");				//$CTX 关键字， 上下文内容
+	//app()->route("/articles/list")->to("\articles\list($page)");		//$_RQEUEST['page']
+	app()->route("/articles/*")->allow();								//$_RQEUEST['page']
+	app()->route("/(admin|vip|visitor)")->to("\user\permission($SRV_PATH)");	//$SRV_xx关键字， 即 $_SERVER[xx]
+	
+	vip 搜索报表A 2015-11 和 2015-12 的数据， 并按照ID进行排序,以json格式返回：
+	app()->route("/vip")->to("\user\permission($SRV_PATH)");	//$SRV_xx关键字， 即 $_SERVER[xx] = "/vip/articles/search"
+	app()->route("/articles/_");	//$_REQUEST['search'] = 'A', $_REQUEST['begin'] = '2015-11', $_REQUEST['end'] = '2015-12'
+	app()->route("/sort/_")->to("\data\sort($1, $CTX)");	//
+	app()->route("/json")->to("\format($1, $CTX)");
+	
+	/vip/articles/search/sort/desc/json
+	执行顺序：
+	/vip, /articles/search, /sort/desc, /json 
 
 
 ********************************* 1. 监控请求 (监控request请求次数) ************************************
