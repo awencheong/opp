@@ -232,6 +232,14 @@ app/app.php
 	执行顺序：
 	/vip, /articles/search, /sort/desc, /json 
 
+	
+	app()->route("/articles/search")->require("/vip");
+	
+	/articles/search/desc/articles/list/json
+	执行顺序：
+	/vip (隐式), /articles/search/desc,  /artiches/list,  2) + 3) 的结果,  json 
+	
+	
 
 ********************************* 1. 监控请求 (监控request请求次数) ************************************
 在 web API 入口设置监控：
