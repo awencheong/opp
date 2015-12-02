@@ -158,7 +158,7 @@ app/app.php
 	require "../core/App.php";
 	
 	//所有操作都基于：  path + method 
-	//规则优先级如下：  only = allow = deny, 以最后一个设置为准生效;   must 独立作用，与其他三个互不依赖；
+	//规则优先级如下：  only = allow = deny, 以最后一个设置为准生效
 	
 	// path前缀 对应的 namespace 
 	//默认会设置 / 为 \app\modules\
@@ -176,12 +176,15 @@ app/app.php
 	//method 维度的规则
 	app()->router("/user/Login")->only("post");
 	
-	//用户自定义规则:通常用于权限鉴别
-	app()->router("/show/DataImportant")->must(function(){
+	//用户自定义的module回调 require: 在执行本mod之前，需要成功执行自定义回调函数 func
+	app()->router("/show/DataImportant")->require(function(){
 		return app()->mod("\user\Permission")->run() < 3;	//查看用户权限是否足够
 	});
 	
-	
+	//用户自定义的module回调 after: 在执行本mod之后，需要成功执行自定义回调函数 func
+	app()->header("Content-Format:json")->after(function($params) {
+		return json_encode($params);
+	});
 	
 
 
