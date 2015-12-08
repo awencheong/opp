@@ -1,0 +1,9 @@
+Elasticsearch是一个实时分布式搜索和分析引擎。它让你以前所未有的速度处理大数据成为可能。
+但是Elasticsearch不仅用于大型企业，它还让像DataDog以及Klout这样的创业公司将最初的想法变成可扩展的解决方案。
+Elasticsearch可以在你的笔记本上运行，也可以在数以百计的服务器上处理PB级别的数据。
+
+https://github.com/looly/elasticsearch-definitive-guide-cn/blob/master/010_Intro/00_README.md
+
+
+实时分析数据工具, 采用 html 和 js 写成
+https://www.elastic.co/downloads/kibana
