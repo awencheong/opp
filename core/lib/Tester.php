@@ -45,9 +45,12 @@ class Tester
 		return true;
 	}
 
-	private static function outputError($class)
+	private static function outputError($class, $errmsg = null)
 	{
 		echo "class $class failed!\n" ;
+		if ($errmsg) {
+			echo "[ERROR] $errmsg \n";
+		}
 		echo "\tsuccess\t[".self::$succAssertNum."] assertions\n" ;
 		echo "\tfailed at	file: ".self::$lastTrace['file']."[".self::$lastTrace['line']."]\n";
 		if (self::$errmsg) {
@@ -79,7 +82,7 @@ class Tester
 			}
 			return true;
 		} catch (\Exception $e) {
-			self::outputError($class);
+			self::outputError($class, $e->getMessage());
 			self::$errmsg = $e->getMessage();
 			return false;
 		}
