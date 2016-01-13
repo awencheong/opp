@@ -120,7 +120,7 @@ class	Web
 			}
 			return $res;
 		} else {
-			$this->errmsg = "ERROR: path not exists {$modPath}";
+			$this->errmsg = "ERROR: path not exists {$modPath}, no rule found";
 			return false;
 		}
 	}
