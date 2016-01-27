@@ -1,4 +1,5 @@
 <?php
+/* a test entry */
 namespace app;
 require __DIR__ . "/include.php";
 if ($argc >= 2) {
