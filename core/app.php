@@ -74,7 +74,7 @@ final	class	App
 	private $io = array();
 	public function __get($name)
 	{
-		if (isset($this->$name)) {
+		if ($this->$name) {
 			return $this->$name;
 		}
 		if (!isset($this->io[$name])) {
