@@ -39,14 +39,9 @@ class CmdTest extends PHPUnit_Framework_TestCase
 
     public function testCmd()
     {
-        return true;
-        
-        $fpath = __DIR__ . "/abc.json";
-        $res = file_put_contents($fpath, '{"name":"awen1"}');
-        $this->assertEquals(true, $res !== false);
         $arg = array(
             "./exec.php",
-            "CmdDebugMod/analyze",
+            "--CmdDebugMod/analyze",
             "awen",
             "12",
             "@./abc.json",
@@ -54,23 +49,22 @@ class CmdTest extends PHPUnit_Framework_TestCase
             '["name", "age"]',
             '$1'
         );
-        $c = new Cmd1($this->prepare());
+        $c = new Cmd1($arg);
         $this->assertEquals($c->script, "./exec.php");
-        $this->assertEquals($c->param[1], "CmdDebugMod/analyze");
-        $this->assertEquals($c->param[2], "awen");
-        $this->assertEquals($c->param[3], array(
-            "name" => "awen1",
-            "age" => 13
-        ));
-        $this->assertEquals($c->options['CmdDebugMod/table'], 
+        $this->assertEquals($c->cmds['CmdDebugMod/analyze'], 
             array(
-                '$1',
+                "awen",
+                "12",
+                "@./abc.json"
+            ));
+        $this->assertEquals($c->cmds['CmdDebugMod/table'], 
+            array(
                 array(
                     "name",
                     "age"
-                )
+                ),
+                '$1'
             ));
-        unlink($fpath);
     }
 
     public function testMod()
@@ -92,6 +86,31 @@ class CmdTest extends PHPUnit_Framework_TestCase
                 '$1'
             )
         );
+        $this->_testExec($c);
+        
+        $fpath = "./abc.json";
+        $res = file_put_contents($fpath, '{"name":"awen1"}');
+        $this->assertEquals(true, $res !== false);
+        $c->cmds = array(
+            'CmdDebugMod/analyze' => array(
+                'awen',
+                '12',
+                '@./abc.json'
+            ),
+            'CmdDebugMod/table' => array(
+                array(
+                    'name',
+                    'age'
+                ),
+                '$1'
+            )
+        );
+        $this->_testExec($c);
+        unlink($fpath);
+    }
+
+    private function _testExec($c)
+    {
         $res = $c->exec("/");
         
         $this->assertEquals($res['head'], array(
