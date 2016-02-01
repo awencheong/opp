@@ -24,11 +24,34 @@ class Cmd
             global $argv;
             $this->argv = $argv;
         }
+        $this->_init();
+    }
+
+    private function _init()
+    {
+        $this->script = $this->argv[0];
+        $argv = array_slice($this->argv, 1);
+        $cmd = '';
+        foreach ($argv as $a) {
+            if (preg_match('/^--([^-^\s]+)/', $a, $match)) {
+                $cmd = $match[1];
+                continue;
+            }
+            
+            if ($cmd != '') {
+                if ($tmp = \json_decode($a, true)) {
+                    $this->cmds[$cmd][] = $tmp;
+                } else {
+                    $this->cmds[$cmd][] = $a;
+                }
+            }
+        }
     }
 
     public function init(array $argv = null)
     {
         $this->argv = $argv;
+        $this->_init();
     }
 
     public function exec($namespace = "/")
@@ -48,6 +71,21 @@ class Cmd
         foreach ($params as &$p) {
             if ($p == '$1' && $this->return['started']) {
                 $p = $this->return['data'];
+                continue;
+            }
+            
+            if (is_string($p) && preg_match('/^@(.*)/', $p, $match)) {
+                $filename = $match[1];
+                if (file_exists($filename) && is_readable($filename)) {
+                    $str = file_get_contents($filename);
+                    if (preg_match('/\.json$/', $filename)) {
+                        $p = json_decode($str, true);
+                    } else {
+                        $p = $str;
+                    }
+                } else {
+                    $p = '';
+                }
             }
         }
         $res = call_user_func_array($this->_findFunc($this->baseNameSpace . "/" . trim($modPath, "/")), $params);
