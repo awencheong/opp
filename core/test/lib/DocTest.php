@@ -1,7 +1,7 @@
 <?php
 namespace Fordebug;
 
-use Mob\console\lib\Doc;
+use app\Doc;
 
 class DocDebugMod
 {
