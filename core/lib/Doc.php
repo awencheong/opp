@@ -1,5 +1,5 @@
 <?php
-namespace Mob\console\lib;
+namespace app;
 
 class Doc
 {
