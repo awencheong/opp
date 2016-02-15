@@ -1,7 +1,7 @@
 <?php
 namespace app;
 
-class Cmd1
+class Cmd
 {
 
     private $baseNameSpace = '';
