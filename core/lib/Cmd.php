@@ -1,7 +1,7 @@
 <?php
-namespace	app;
+namespace app;
 
-class Cmd
+class Cmd1
 {
 
     private $baseNameSpace = '';
@@ -62,9 +62,11 @@ class Cmd
         if ($this->baseNameSpace == "/") {
             $this->baseNameSpace = "";
         }
+        $this->baseNameSpace = str_replace("/", "\\", $this->baseNameSpace);
         foreach ($this->cmds as $modPath => $params) {
-            if (strpos($modPath, "/") !== 0) {
-                $modPath = $this->baseNameSpace . "/" . trim($modPath, "/");
+            $modPath = str_replace("/", "\\", $modPath);
+            if (strpos($modPath, "\\") !== 0) {
+                $modPath = $this->baseNameSpace . "\\" . trim($modPath, "\\");
             }
             $this->_exec($modPath, $params);
         }
@@ -110,7 +112,6 @@ class Cmd
         //1. find function
         //2. find class::method
         //3. throw exception
-        $modPath = str_replace("/", "\\", $modPath);
         if (function_exists($modPath)) {
             return $modPath;
         }
