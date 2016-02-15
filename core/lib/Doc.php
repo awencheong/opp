@@ -4,25 +4,51 @@ namespace app;
 class Doc
 {
 
-    public function helpClass($keywords)
+    private $include_files = array();
+
+    private function includeFiles($dirname)
     {
-        if (!is_array($keywords)) {
-            $keywords = array(
-                $keywords
-            );
+        if (isset($this->include_files[$dirname])) {
+            return;
         }
+        $this->include_files[$dirname] = true;
+        $this->_includeFiles($dirname);
+    }
+
+    private function _includeFiles($dirname)
+    {
+        if (!is_dir($dirname)) {
+            ob_start();
+            $old = error_reporting();
+            error_reporting(E_STRICT);
+            include_once $dirname;
+            error_reporting($old);
+            ob_end_clean();
+            return;
+        }
+        foreach (scandir($dirname) as $file) {
+            if ($file != '..' && $file != '.') {
+                $this->_includeFiles($dirname . "/" . $file);
+            }
+        }
+    }
+
+    public function helpClass($dirname, $keywords)
+    {
+        $this->includeFiles($dirname);
+        $keywords = $this->fmtKeywods($keywords);
         $doc = array();
         foreach (get_declared_classes() as $class) {
             foreach ($keywords as $k) {
-                if ($this->match($class, $k)) {
-                    $ref = new \ReflectionClass($class);
-                    $methods = $ref->getMethods();
-                    foreach ($methods as $m) {
-                        $mname = $m->getName();
-                        $params = array();
-                        foreach ($m->getParameters() as $p) {
-                            $params[] = $this->params($p);
-                        }
+                $ref = new \ReflectionClass($class);
+                $methods = $ref->getMethods();
+                foreach ($methods as $m) {
+                    $mname = $m->getName();
+                    $params = array();
+                    foreach ($m->getParameters() as $p) {
+                        $params[] = $this->params($p);
+                    }
+                    if ($this->match($class . "\\" . $mname, $k)) {
                         $doc[$class][$mname] = $params;
                     }
                 }
@@ -31,13 +57,23 @@ class Doc
         return $doc;
     }
 
-    public function helpFunc($keywords)
+    private function fmtKeywods($keywords)
     {
         if (!is_array($keywords)) {
             $keywords = array(
                 $keywords
             );
         }
+        foreach ($keywords as $i => $k) {
+            $keywords[$i] = str_replace("/", "\\", $k);
+        }
+        return $keywords;
+    }
+
+    public function helpFunc($dirname, $keywords)
+    {
+        $this->includeFiles($dirname);
+        $keywords = $this->fmtKeywods($keywords);
         $funs = get_defined_functions();
         $doc = array();
         foreach ($funs['user'] as $f) {
