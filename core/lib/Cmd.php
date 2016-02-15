@@ -13,8 +13,6 @@ class Cmd
         'data' => null
     );
 
-    private $op = 'EXEC';
-
     public $cmds = array();
 
     public $script;
@@ -29,14 +27,8 @@ class Cmd
         $this->_init();
     }
 
-    public function lastOperation()
-    {
-        return $this->op;
-    }
-
     private function _init()
     {
-        $this->op = 'EXEC';
         $this->script = $this->argv[0];
         $argv = array_slice($this->argv, 1);
         $cmd = '';
@@ -54,11 +46,6 @@ class Cmd
                     $this->cmds[$cmd][] = $a;
                 }
             }
-        }
-        
-        if (isset($this->cmds['HELP'])) {
-            $this->op = 'HELP';
-            unset($this->cmds['HELP']);
         }
     }
 
@@ -79,14 +66,7 @@ class Cmd
             if (strpos($modPath, "/") !== 0) {
                 $modPath = $this->baseNameSpace . "/" . trim($modPath, "/");
             }
-            switch ($this->op) {
-                case 'HELP':
-                    $this->_helpFunc($modPath);
-                    break;
-                case 'EXEC':
-                    $this->_exec($modPath, $params);
-                    break;
-            }
+            $this->_exec($modPath, $params);
         }
         return $this->return['data'];
     }
@@ -119,36 +99,10 @@ class Cmd
             );
         }
         $callable = $this->_findFunc($modPath);
-        //$res = call_user_func_array($callable[0], $params);
-        if ($callable[0] instanceof \ReflectionMethod) {
-            $res = $callable[0]->invokeArgs($callable[1], $params);
-        } else {
-            $res = $callable[0]->invokeArgs($params);
-        }
+        $res = call_user_func_array($callable, $params);
         $this->return['started'] = true;
         $this->return['data'] = $res;
         return;
-    }
-
-    private function _helpFunc($modPath)
-    {
-        $res = array(); // name[=123]
-        try {
-            $refFunc = $this->_findFunc($modPath);
-            foreach ($refFunc[0]->getParameters() as $p) {
-                $desc = array();
-                if ($p->isDefaultValueAvailable()) {
-                    $desc['default'] = $p->getDefaultValue();
-                }
-                if ($p->isArray()) {
-                    $desc['isArray'] = true;
-                }
-                $res[$p->getName()] = $desc;
-            }
-        } catch (\Exception $e) {
-            $res = $e->getMessage();
-        }
-        $this->return['data'][$modPath] = $res;
     }
 
     private function _findFunc($modPath)
@@ -158,9 +112,7 @@ class Cmd
         //3. throw exception
         $modPath = str_replace("/", "\\", $modPath);
         if (function_exists($modPath)) {
-            return array(
-                new \ReflectionFunction($modPath)
-            );
+            return $modPath;
         }
         $split = strrpos($modPath, "\\");
         $class = substr($modPath, 0, $split);
@@ -175,8 +127,8 @@ class Cmd
             throw new \Exception("failed to find module;  function [$modPath]  or  method $class::$method not found");
         }
         return array(
-            new \ReflectionMethod($class, $method),
-            new $class()
+            new $class(),
+            $method
         );
     }
 }
