@@ -37,7 +37,7 @@ class DocTest extends \PHPUnit_Framework_TestCase
     public function testHelpFunc()
     {
         $doc = new Doc();
-        $res = $doc->helpFunc("ForTest");
+        $res = $doc->helpFunc(__DIR__, "ForTest");
         
         $this->assertEquals($res['fordebug\justfortest'][0]['name'], 'a');
         $this->assertEquals(isset($res['fordebug\justfortest'][0]['default']), false);
@@ -51,7 +51,7 @@ class DocTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($res['fordebug\justfortest'][2]['default'], array());
         $this->assertEquals($res['fordebug\justfortest'][2]['isArray'], true);
         
-        $res = $doc->helpFunc(array(
+        $res = $doc->helpFunc(__DIR__, array(
             "ForTest",
             "AnotherFunc"
         ));
@@ -62,7 +62,7 @@ class DocTest extends \PHPUnit_Framework_TestCase
     public function testHelpClass()
     {
         $doc = new Doc();
-        $res = $doc->helpClass("DocDebug");
+        $res = $doc->helpClass(__DIR__, "DocDebug");
         
         $this->assertEquals($res['Fordebug\DocDebugMod']['analyze'][0]['name'], 'name');
         $this->assertEquals($res['Fordebug\DocDebugMod']['analyze'][1]['name'], 'age');
