@@ -1,6 +1,8 @@
 <?php
 namespace app;
 
+use app\Mod;
+
 class Cmd
 {
 
@@ -63,73 +65,15 @@ class Cmd
             $this->baseNameSpace = "";
         }
         $this->baseNameSpace = str_replace("/", "\\", $this->baseNameSpace);
+        $mods = array();
         foreach ($this->cmds as $modPath => $params) {
             $modPath = str_replace("/", "\\", $modPath);
             if (strpos($modPath, "\\") !== 0) {
                 $modPath = $this->baseNameSpace . "\\" . trim($modPath, "\\");
             }
-            $this->_exec($modPath, $params);
+            $mods[$modPath] = $params;
         }
-        return $this->return['data'];
-    }
-
-    private function _exec($modPath, $params)
-    {
-        foreach ($params as &$p) {
-            if ($p == '$1' && $this->return['started']) {
-                $p = $this->return['data'];
-                continue;
-            }
-            
-            if (is_string($p) && preg_match('/^@(.*)/', $p, $match)) {
-                $filename = $match[1];
-                if (file_exists($filename) && is_readable($filename)) {
-                    $str = file_get_contents($filename);
-                    if (preg_match('/\.json$/', $filename)) {
-                        $p = json_decode($str, true);
-                    } else {
-                        $p = $str;
-                    }
-                } else {
-                    $p = '';
-                }
-            }
-        }
-        if (!$params && $this->return['started']) {
-            $params = array(
-                $this->return['data']
-            );
-        }
-        $callable = $this->_findFunc($modPath);
-        $res = call_user_func_array($callable, $params);
-        $this->return['started'] = true;
-        $this->return['data'] = $res;
-        return;
-    }
-
-    private function _findFunc($modPath)
-    {
-        //1. find function
-        //2. find class::method
-        //3. throw exception
-        if (function_exists($modPath)) {
-            return $modPath;
-        }
-        $split = strrpos($modPath, "\\");
-        $class = substr($modPath, 0, $split);
-        $method = substr($modPath, $split + 1);
-        if (!$method) {
-            throw new \Exception("failed to find module;  function [$modPath]  or  method $class::$method not found");
-        }
-        if (!class_exists($class)) {
-            throw new \Exception("failed to find module;  function [$modPath]  or  method $class::$method not found");
-        }
-        if (!method_exists($class, $method)) {
-            throw new \Exception("failed to find module;  function [$modPath]  or  method $class::$method not found");
-        }
-        return array(
-            new $class(),
-            $method
-        );
+        $mod = new Mod();
+        return $mod->callSequence($mods, false);
     }
 }
