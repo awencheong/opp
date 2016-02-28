@@ -101,6 +101,7 @@ class	Pipe {
 					$output[$p[0]][] = $p[1];
 				}
 			}
+			$in->close();
 		}
 		$new_output = array();
 		if ($reducer) {
