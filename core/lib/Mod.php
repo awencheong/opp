@@ -33,6 +33,11 @@ class Mod
                 continue;
             }
             
+            if ($p == '$stdin') {
+                $p = file_get_contents("php://stdin");
+                continue;
+            }
+            
             if (is_string($p) && preg_match('/^@(.*)/', $p, $match)) {
                 $filename = $match[1];
                 if (file_exists($filename) && is_readable($filename)) {
