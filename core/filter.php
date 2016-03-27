@@ -26,17 +26,21 @@ try {
     if (!$cmd->cmds) {
         die("usage: php " . $cmd->script . " --cmd1 param1 ...  --cmd2 param1 ... \n\n");
     }
-    $op = $cmd->cmds[0]['options'];
-    $data = null;
-    if (isset($op['param_from_std']) && $op['param_from_std'] >= 0) {
-	    $data = file_get_contents("php://stdin");
-    }
-
     Mod::$SAFE_MODE = false;
     Mod::$baseNameSpace = "myapp/modules";
-    
+    $fp = fopen("php://stdin", "r");
+    if (!$fp) {
+	    die("failed to open stdin\n");
+    }
     Mod::initSequence($cmd->cmds);
-    print_r(Mod::callSequence($data));
+    while (!feof($fp)) {
+	    $line = trim(fgets($fp), "\n"); 
+	    if ($line) {
+		    print_r(Mod::callSequence($line));
+		    echo "\n";
+	    }
+    }
+    fclose($fp);
     
 } catch (\Exception $e) {
     echo ($e->getMessage() . "\n");
