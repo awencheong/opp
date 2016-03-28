@@ -122,7 +122,7 @@ class Mod
 			}
 
 			$filename = $match[1];
-			if (!file_exists($filename) || is_readable($filename)) {
+			if (!file_exists($filename) || !is_readable($filename)) {
 				$params[$i] = '';
 				continue;
 			}
