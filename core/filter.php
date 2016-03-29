@@ -21,27 +21,8 @@ include __DIR__ . "/include.php";
 use app\Cmd;
 use app\Mod;
 global $argv;
-try {
-    $cmd = new Cmd($argv);
-    if (!$cmd->cmds) {
-        die("usage: php " . $cmd->script . " --cmd1 param1 ...  --cmd2 param1 ... \n\n");
-    }
-    Mod::$SAFE_MODE = false;
-    Mod::$baseNameSpace = "myapp/modules";
-    $fp = fopen("php://stdin", "r");
-    if (!$fp) {
-	    die("failed to open stdin\n");
-    }
-    Mod::initSequence($cmd->cmds);
-    while (!feof($fp)) {
-	    $line = trim(fgets($fp), "\n"); 
-	    if ($line) {
-		    print_r(Mod::callSequence($line));
-		    echo "\n";
-	    }
-    }
-    fclose($fp);
-    
-} catch (\Exception $e) {
-    echo ($e->getMessage() . "\n");
+$cmd = new Cmd($argv);
+if (!$cmd->cmds) {
+	die("usage: php " . $cmd->script . " --cmd1 param1 ...  --cmd2 param1 ... \n\n");
 }
+Mod::filter($cmd->cmds, "myapp/modules");

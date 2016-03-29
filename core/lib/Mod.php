@@ -38,10 +38,13 @@ class Mod
 
 	private function _isCustomDefined($modPath, &$handle)
 	{
+		$forlog = $modPath;
 		$modPath = trim($modPath);
 		if (!self::$SAFE_MODE && preg_match('/^function\s*[^()]*(\([^()]*\)\s*\{.*\})[;\s]*$/', $modPath, $match)) {
 			$modPath = "\$handle = function {$match[1]};";
-			eval($modPath);
+			if (@eval($modPath) === false) {
+				throw new \Exception("PHP syntax error found in your function code:  \n\n\t" . $forlog . "\n");
+			}
 			return true;
 		} else {
 			return false;
@@ -69,6 +72,64 @@ class Mod
 			$this->params = $this->_remapParams($params);
 		} else {
 			$this->params = $params;
+		}
+	}
+
+	/*
+	 * @param	$cmds
+	 * 		[
+	 * 		{"mod"=>xx, "params"=>xx, "options"=>xx}
+	 * 		]
+	 */
+	public static function filter($cmds, $namespace = "/")
+	{
+		try {
+			self::$SAFE_MODE = false;
+			self::$baseNameSpace = $namespace;
+			$fp = fopen("php://stdin", "r");
+			if (!$fp) {
+				die("failed to open stdin\n");
+			}
+			self::initSequence($cmds);
+			while (!feof($fp)) {
+				$line = trim(fgets($fp), "\n"); 
+				if ($line) {
+					print_r(self::callSequence($line));
+					echo "\n";
+				}
+			}
+			fclose($fp);
+
+		} catch (\Exception $e) {
+			echo ($e->getMessage() . "\n");
+		}
+	}
+
+
+	/*
+	 * @param	$cmds
+	 * 		[
+	 * 		{"mod"=>xx, "params"=>xx, "options"=>xx}
+	 * 		]
+	 */
+	public static function exec($cmds, $namespace = "/") {
+
+		try {
+			$op = $cmds[0]['options'];
+			$data = null;
+			if (isset($op['param_from_std']) && $op['param_from_std'] >= 0) {
+				$data = file_get_contents("php://stdin");
+			}
+
+			self::$SAFE_MODE = false;
+			self::$baseNameSpace = $namespace;
+
+			self::initSequence($cmds);
+			print_r(self::callSequence($data));
+			echo "\n";
+
+		} catch (\Exception $e) {
+			file_put_contents ("php://stderr", $e->getMessage() . "\n");
 		}
 	}
 
