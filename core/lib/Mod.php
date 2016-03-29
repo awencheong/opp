@@ -83,6 +83,7 @@ class Mod
 	 */
 	public static function filter($cmds, $namespace = "/")
 	{
+		$fp = null;
 		try {
 			self::$SAFE_MODE = false;
 			self::$baseNameSpace = $namespace;
@@ -101,7 +102,10 @@ class Mod
 			fclose($fp);
 
 		} catch (\Exception $e) {
-			echo ($e->getMessage() . "\n");
+			if ($fp) {
+				fclose($fp);
+			}
+			file_put_contents ("php://stderr", $e->getMessage() . "\n");
 		}
 	}
 
