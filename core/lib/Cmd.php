@@ -1,17 +1,11 @@
 <?php
 namespace app;
+use	app\Mod;
 
 class Cmd
 {
 
-	private $baseNameSpace = '';
-
 	private $argv;
-
-	private $return = array(
-		'started' => false,
-		'data' => null
-	);
 
 	public $boost_conf = array();
 
@@ -27,6 +21,61 @@ class Cmd
 			$this->argv = $argv;
 		}
 		$this->_init();
+	}
+
+
+	public function exec($namespace = "/")
+	{
+		if (!$this->cmds) {
+			die("usage: php " . $cmd->script . " --cmd1 param1 ...  --cmd2 param1 ... \n\n");
+		}
+		$cmds = $this->cmds;
+		try {
+			$op = $cmds[0]['options'];
+			$data = null;
+			if (isset($op['param_from_std']) && $op['param_from_std'] >= 0) {
+				$data = file_get_contents("php://stdin");
+			}
+
+			Mod::$SAFE_MODE = false;
+			Mod::$baseNameSpace = $namespace;
+
+			Mod::initSequence($cmds);
+			print_r(Mod::callSequence($data));
+			echo "\n";
+		} catch (\Exception $e) {
+			file_put_contents("php://stderr", $e->getMessage() . "\n");
+		}
+	}
+
+	public function filter($namespace = "/")
+	{
+		if (!$this->cmds) {
+			die("usage: php " . $cmd->script . " --cmd1 param1 ...  --cmd2 param1 ... \n\n");
+		}
+		$fp = null;
+		try {
+			Mod::$SAFE_MODE = false;
+			Mod::$baseNameSpace = $namespace;
+			$fp = fopen("php://stdin", "r");
+			if (!$fp) {
+				die("failed to open stdin\n");
+			}
+			Mod::initSequence($this->cmds);
+			while (!feof($fp)) {
+				$line = trim(fgets($fp), "\n");
+				if ($line) {
+					print_r(Mod::callSequence($line));
+					echo "\n";
+				}
+			}
+			fclose($fp);
+		} catch (\Exception $e) {
+			if ($fp) {
+				fclose($fp);
+			}
+			file_put_contents("php://stderr", $e->getMessage() . "\n");
+		}
 	}
 
 	public function find($cmdName) 

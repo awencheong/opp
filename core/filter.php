@@ -19,10 +19,5 @@ include __DIR__ . "/include.php";
 // command:  echo "abc" | php filter.php --Index/run "awen" '$1' --/json_encode '$1' 
 
 use app\Cmd;
-use app\Mod;
-global $argv;
 $cmd = new Cmd($argv);
-if (!$cmd->cmds) {
-	die("usage: php " . $cmd->script . " --cmd1 param1 ...  --cmd2 param1 ... \n\n");
-}
-Mod::filter($cmd->cmds, "myapp/modules");
+$cmd->filter("myapp/modules");

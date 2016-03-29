@@ -75,67 +75,6 @@ class Mod
 		}
 	}
 
-	/*
-	 * @param	$cmds
-	 * 		[
-	 * 		{"mod"=>xx, "params"=>xx, "options"=>xx}
-	 * 		]
-	 */
-	public static function filter($cmds, $namespace = "/")
-	{
-		$fp = null;
-		try {
-			self::$SAFE_MODE = false;
-			self::$baseNameSpace = $namespace;
-			$fp = fopen("php://stdin", "r");
-			if (!$fp) {
-				die("failed to open stdin\n");
-			}
-			self::initSequence($cmds);
-			while (!feof($fp)) {
-				$line = trim(fgets($fp), "\n"); 
-				if ($line) {
-					print_r(self::callSequence($line));
-					echo "\n";
-				}
-			}
-			fclose($fp);
-
-		} catch (\Exception $e) {
-			if ($fp) {
-				fclose($fp);
-			}
-			file_put_contents ("php://stderr", $e->getMessage() . "\n");
-		}
-	}
-
-
-	/*
-	 * @param	$cmds
-	 * 		[
-	 * 		{"mod"=>xx, "params"=>xx, "options"=>xx}
-	 * 		]
-	 */
-	public static function exec($cmds, $namespace = "/") {
-
-		try {
-			$op = $cmds[0]['options'];
-			$data = null;
-			if (isset($op['param_from_std']) && $op['param_from_std'] >= 0) {
-				$data = file_get_contents("php://stdin");
-			}
-
-			self::$SAFE_MODE = false;
-			self::$baseNameSpace = $namespace;
-
-			self::initSequence($cmds);
-			print_r(self::callSequence($data));
-			echo "\n";
-
-		} catch (\Exception $e) {
-			file_put_contents ("php://stderr", $e->getMessage() . "\n");
-		}
-	}
 
 
 	/*
@@ -147,6 +86,7 @@ class Mod
 	public static function initSequence(array $cmds)
 	{
 		self::$mods = array();
+		self::$file_contents = array();
 		foreach ($cmds as $c) {
 			if (!isset($c['params']) || !is_array($c['params'])) {
 				throw new \Exception("wrong params, should be an array");
