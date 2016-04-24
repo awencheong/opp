@@ -71,6 +71,7 @@ class Mod
 			}
 		}
 
+
 		if ($this->options['param_map']) {
 			$this->params = $this->_remapParams($params);
 		} else {

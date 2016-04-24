@@ -73,7 +73,6 @@ class	Web
 		$this->path = $path;
 	}
 
-
 	private function getInput()
 	{
 		if ($this->method == "GET") {
@@ -199,7 +198,7 @@ class	Web
 		$match = false;
 		foreach ($modules as &$m) {
 			if ($m['mod_preg'] && is_array($m['mod_preg'])) {
-				if (!$match && !preg_match($preg, $path, $match)) {
+				if (!$match && $preg && !preg_match($preg, $path, $match)) {
 					throw new \Exception("wrong preg_match pattern of location:". $preg);
 				}
 
@@ -212,7 +211,7 @@ class	Web
 			}
 
 			if ($m['param_preg'] && is_array($m['param_preg'])) {
-				if (!$match && !preg_match($preg, $path, $match)) {
+				if (!$match && $preg && !preg_match($preg, $path, $match)) {
 					throw new \Exception("wrong preg_match pattern of location:". $preg);
 				}
 
@@ -226,6 +225,14 @@ class	Web
 					}
 				}
 
+			}
+
+			$i = 0;
+			foreach ($m['params'] as $p) {
+				if ($p == '$1') {
+					$m['options']['param_from_std'] = $i;
+				}
+				$i ++;
 			}
 
 		}
