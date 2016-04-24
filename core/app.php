@@ -44,13 +44,9 @@ final	class	App
 {
 
 	private $web;
-	private $cmd;
-	private $mod;
 	private function _init()
 	{
 		$this->web = new Web;
-		$this->cmd = new Cmd;
-		$this->mod = new Mod;
 	}
 	private function __construct()
 	{}
@@ -98,5 +94,23 @@ final	class	App
 		foreach ($cfg as $name => $obj) {
 			$this->io[$name] = $obj;
 		}
+	}
+
+	public function location($url, $path)
+	{
+		$this->web->location($url, $path);
+		return $this;
+	}
+
+	public function view($url, $viewer)
+	{
+		$this->web->view($url, $viewer);
+		return $this;
+	}
+
+	public function run()
+	{
+		$this->web->run();
+		return $this;
 	}
 }

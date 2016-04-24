@@ -53,7 +53,10 @@ class Mod
 
 	public function __construct($mod, $params=array(), $options=array()) {
 
-		if ($this->_isCustomDefined($mod, $handle)) {
+		if (is_callable($mod)) {
+			$this->handle = $mod;
+			$this->type = 'func';
+		} elseif (is_callable($mod) || $this->_isCustomDefined($mod, $handle)) {
 			$this->handle = $handle;
 			$this->type = 'func';
 		} else {
