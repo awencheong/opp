@@ -96,6 +96,12 @@ final	class	App
 		}
 	}
 
+	public function authenticate($url, $path)
+	{
+		$this->web->authenticate($url, $path);
+		return $this;
+	}
+
 	public function location($url, $path)
 	{
 		$this->web->location($url, $path);

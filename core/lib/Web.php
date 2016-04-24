@@ -44,6 +44,11 @@ class	Web
 	 *
 	 */
 	private $route = array(
+		'auth' => array(
+			'eq' => array(),
+			'prefix' => array(),
+			'sufix' => array()
+		),
 		'mod' => array(
 			'eq' => array(),
 			'prefix' => array(),
@@ -85,6 +90,15 @@ class	Web
 		return $input;
 	}
 
+	private function loadParams($input, &$modules)
+	{
+		foreach ($input as $k => $v) {
+			foreach ($modules as &$m) {
+				$m['params'][$k] = $v;
+			}
+		}
+	}
+
 	public function run($path = null)
 	{
 		if (!$path) {
@@ -92,39 +106,37 @@ class	Web
 		}
 		$res = false;
 		$input = $this->getInput();
+		if ($auth = $this->map2modules($path, $this->route['auth'])) {
+			$this->loadParams($input, $auth);
+			Mod::initSequence($auth);
+			if ( ! $res = Mod::callSequence(null)) {
+				$this->errmsg = "ERROR: authentication failed! ";
+				return false;
+			}
+		}
 		if (
 			($mods = $this->map2modules($path, $this->route['mod']))  &&
 			($views = $this->map2modules($path, $this->route['view']))
 		) {
-			foreach ($input as $k => $v) {
-				foreach ($mods as &$m) {
-					$m['params'][$k] = $v;
-				}
-			}
+			$this->loadParams($input, $mods);
 			Mod::initSequence($mods);
 			$res = Mod::callSequence(null);
 			$views[0]['params']['data'] = $res;
 			Mod::initSequence($views);
 			return Mod::callSequence(null);
 		} else {
-			$this->errmsg = "ERROR: path not exists {$modPath}, no rule found";
+			$this->errmsg = "ERROR: module or viewer failed!";
 			return false;
 		}
 	}
 
-	/*
-	 *  @param	$modules	array,
-	 *  		[ function($a){}, '/admin/user/checkout' ]
-	 *  		[ '/admin/modules/{1}/run' ]
-	 *  		[ ['mod' => '/admin/modules/{1}/run', 'params' => ['$1'], 'options'=>['xx'] ]
-	 */
-	public function location($path, $modules)
+	private function fmtModules($modules)
 	{
 		if (!is_array($modules)) {
-			if (is_string($modules)) {
+			if (is_string($modules) || is_callable($modules)) {
 				$modules = array($modules);
 			} else {
-				throw new \Exception("location()");
+				return false;
 			}
 		}
 
@@ -140,8 +152,39 @@ class	Web
 				$mod['mod'] = $m;
 				$m = $mod;
 			} else {
-				throw new \Exception("wrong module found, location()");
+				return false;
 			}
+		}
+		return $modules;
+
+	}
+
+	/*
+	 *  @param	$modules	array,
+	 *  		[ function($a){}, '/admin/user/checkout' ]
+	 *  		[ '/admin/modules/{1}/run' ]
+	 *  		[ ['mod' => '/admin/modules/{1}/run', 'params' => ['$1'], 'options'=>['xx'] ]
+	 */
+	public function authenticate($path, $modules)
+	{
+		if (!$modules = $this->fmtModules($modules)) {
+			throw new \Exception("wrong module found, authenticate()");
+		}
+		$preg = $this->path2preg($path, $route_lev, $star_num);
+		$this->route['auth'][$route_lev][$preg] = $this->initModules($modules);
+		return $this;
+	}
+
+	/*
+	 *  @param	$modules	array,
+	 *  		[ function($a){}, '/admin/user/checkout' ]
+	 *  		[ '/admin/modules/{1}/run' ]
+	 *  		[ ['mod' => '/admin/modules/{1}/run', 'params' => ['$1'], 'options'=>['xx'] ]
+	 */
+	public function location($path, $modules)
+	{
+		if (!$modules = $this->fmtModules($modules)) {
+			throw new \Exception("wrong module found, location()");
 		}
 
 		$preg = $this->path2preg($path, $route_lev, $star_num);
