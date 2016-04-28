@@ -1,22 +1,4 @@
 <?php
-/*
-	app()->web->route("/user/login/json", ["\\myapp\\modules\\user\\login | \\app\\json"]);
-	app()->web->setModuleRoot("\\myapp\\modules");
-	app()->web->route("/user/info/modify", ["\\myapp\\modules\\user\\login", "\\myapp\\modules\\user\\info\\modify > \\app\\json"]);	//按顺序执行每个module, 返回最后一个module的值
-	app()->web->route("/user/info/modify", ["user\\login", "user\\info\\modify > \\app\\json"]);	//按顺序执行每个module, 返回最后一个module的值
-
-	app()->web->path = "/article/get.php";
-	app()->web->method = "GET";
-	app()->web->get = array("type"=>"note","limit"=>10);
-	echo app()->web->output();
-
-	app()->web->path = "/article/put.php";
-	app()->web->method = "POST";
-	app()->web->post = array("type"=>"note","contents"=>"@/tmp/articles");
-	echo app()->web->html();
-	echo app()->web->json();
-	print_r(app()->web->run());
-*/
 
 namespace	app;
 use	app\Mod;
@@ -125,7 +107,7 @@ class	Web
 			Mod::initSequence($views);
 			return Mod::callSequence(null);
 		} else {
-			$this->errmsg = "ERROR: module or viewer failed!";
+			$this->errmsg = "ERROR: module or viewer failed! [path:" . $this->path . "]";
 			return false;
 		}
 	}
@@ -371,11 +353,34 @@ class	Web
 
 	}
 
+//	
+//	 1. equal
+//	
+//	 2. ()  and  *
+//	 	2.1	begin with "/" 	>  not begin with "/"
+//	 	2.2	equal > () > *  , from left to right
+//	
+//	 3. preg match
+//	
+//	
+//	 example:
+//	
+//	 	/(admin|manager)/display >  /*/display  >  admin/display
+//	
+//	 	admin/display  >  admin/(display|show)  >  admin/*
+//	 	>  (admin|manager)/display  >   */display
+//	 	>  /^admin\/display$/
+//	
+//	
 	private function path2preg($path, &$route_lev, &$star_num)
 	{
 		$start_with_le = false;
 		$src_path = $path;
 		if (substr($path, 0, 1) == "/") {
+			if (substr($path, strlen($path) - 1, 1) == "/") {
+				$route_lev = self::ROUTE_LEV_SUFIX;
+				return $path;
+			}
 			$start_with_le = true;
 		}
 		$special_replace = array(

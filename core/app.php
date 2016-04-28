@@ -1,4 +1,21 @@
 <?php
+/*
+ *
+example:
+
+app()->deny("*.php", "GET");
+app()->only("/admin/show.php", "GET");
+app()->allow("/admin/show.php", "POST");	
+app()->authenticate("*.php", "/admin/auth");
+app()->location("*.php", "/admin/{1}");
+app()->location("(admin|manager)/(show|name).php", "/{1}/{2}");
+app()->location("(admin|manager)/*.*", "/{1}/{2}");
+app()->location("/(admin|manager|gift)\/(.*)\.php$/", "/admin/{2}");
+//app()->view("*.php", function($data){return json_encode($data);});
+app()->view("/^.*(php|json|jsonp)$/", function($data){return json_encode($data);});
+app()->view("/manager/*.php", function($data){ return json_encode(array("manager" => $data)); });
+
+ */
 namespace	app;
 
 function app()
